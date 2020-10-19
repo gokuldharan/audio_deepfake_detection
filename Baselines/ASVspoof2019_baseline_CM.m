@@ -22,7 +22,7 @@ addpath(genpath('tDCF_v1'));
 
 % set here the experiment to run (access and feature type)
 access_type = 'LA'; % LA for logical or PA for physical
-feature_type = 'LFCC'; % LFCC or CQCC
+feature_type = 'CQCC'; % LFCC or CQCC
 
 % set paths to the wave files and protocols
 
@@ -40,11 +40,11 @@ feature_type = 'LFCC'; % LFCC or CQCC
 %      |- ASVspoof2019_PA_protocols_v1/
 %      |- ASVspoof2019_PA_train_v1/
 
-pathToASVspoof2019Data = '/path/to/ASVspoof_root/';
+pathToASVspoof2019Data = 'C:\Users\gokul\Documents\GitHub\audio_deepfake_detection\data';
 
 pathToDatabase = fullfile(pathToASVspoof2019Data, access_type);
-trainProtocolFile = fullfile(pathToDatabase, horzcat('ASVspoof2019_', access_type, '_protocols'), horzcat('ASVspoof2019.', access_type, '.cm.train.trn.txt'));
-devProtocolFile = fullfile(pathToDatabase, horzcat('ASVspoof2019_', access_type, '_protocols'), horzcat('ASVspoof2019.', access_type, '.cm.dev.trl.txt'));
+trainProtocolFile = fullfile(pathToDatabase, horzcat('ASVspoof2019_', access_type, '_cm_protocols'), horzcat('ASVspoof2019.', access_type, '.cm.train.trn.txt'));
+devProtocolFile = fullfile(pathToDatabase, horzcat('ASVspoof2019_', access_type, '_cm_protocols'), horzcat('ASVspoof2019.', access_type, '.cm.dev.trl.txt'));
 
 % read train protocol
 fileID = fopen(trainProtocolFile);
@@ -64,7 +64,7 @@ spoofIdx = find(strcmp(key,'spoof'));
 % extract features for GENUINE training data and store in cell array
 disp('Extracting features for BONA FIDE training data...');
 genuineFeatureCell = cell(size(bonafideIdx));
-parfor i=1:length(bonafideIdx)
+parfor i=1:3
     filePath = fullfile(pathToDatabase,['ASVspoof2019_' access_type '_train/flac'],[filelist{bonafideIdx(i)} '.flac']);
     [x,fs] = audioread(filePath);
     if strcmp(feature_type,'LFCC')
@@ -79,7 +79,7 @@ disp('Done!');
 % extract features for SPOOF training data and store in cell array
 disp('Extracting features for SPOOF training data...');
 spoofFeatureCell = cell(size(spoofIdx));
-parfor i=1:length(spoofIdx)
+parfor i=1:3
     filePath = fullfile(pathToDatabase,['ASVspoof2019_' access_type '_train/flac'],[filelist{spoofIdx(i)} '.flac'])
     [x,fs] = audioread(filePath);
     if strcmp(feature_type,'LFCC')
