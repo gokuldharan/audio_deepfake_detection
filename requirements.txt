@@ -2,3 +2,6 @@ numpy
 matplotlib
 pysoundfile
 scikit-learn
+librosa
+pandas
+scipy
