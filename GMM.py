@@ -5,6 +5,7 @@ import sklearn.mixture
 from joblib import dump, load
 from spectralfeatures import batchTransform
 import os.path
+import utils
 
 SR = 8000
 N_FILES = 60
