@@ -36,6 +36,10 @@ def rms(filename):
     return librosa.feature.rms(y=y,
                                frame_length=N_FFT)[0]
 
+def dct_func(data):
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.dct.html
+    return dct(data)
+    
 if __name__ == '__main__':
     fname = 'data/LA/ASVspoof2019_LA_train/flac/LA_T_1000137.flac'
     rms_feats = rms(fname)
