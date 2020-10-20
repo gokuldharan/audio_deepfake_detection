@@ -65,7 +65,7 @@ def balance_data():
             sub_df = sub_df[int(n_per_class*test_train_ratio):2*int(n_per_class*test_train_ratio)]
             eval_out_df = pd.concat((eval_out_df, sub_df[['filename', 'spoof_type']]))
 
-    print(eval_out_df)
+    #print(eval_out_df)
     eval_out_df.to_csv(os.path.join(data_subset_basepath, 'eval_balanced.txt'), index=False, index_label=False)
 
 def load_data():
@@ -86,7 +86,7 @@ def load_data():
     X_eval = df_eval['filename'].to_numpy()
     X_eval = 'data/LA/ASVspoof2019_LA_eval/flac/' + X_eval + '.flac'
     Y_eval = np.array(df_eval['spoof_type'] != '-').astype('int') # 0 if bonafide, 1 if spoof
-    print(df_eval['spoof_type'])
+    #print(df_eval['spoof_type'])
 
     # Shuffling arrays
     X_train, Y_train = shuffle(X_train, Y_train)
