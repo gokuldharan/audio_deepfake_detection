@@ -84,7 +84,7 @@ def load_data():
     Y_dev = np.array(df_dev['spoof_type'] != '-').astype('int') # 0 if bonafide, 1 if spoof
 
     X_eval = df_eval['filename'].to_numpy()
-    X_eval = 'data/LA/ASVspoof2019_LA_eval/flac/' + X_eval + '.flac'
+    X_eval = 'data/LA/ASVspoof2019_LA_dev/flac/' + X_eval + '.flac'
     Y_eval = np.array(df_eval['spoof_type'] != '-').astype('int') # 0 if bonafide, 1 if spoof
     #print(df_eval['spoof_type'])
 
