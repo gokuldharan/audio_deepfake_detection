@@ -3,6 +3,7 @@ import librosa
 import dataloader
 import sklearn.mixture
 from joblib import dump, load
+from sklearn.utils import shuffle
 
 SF = 16000
 N_FFT = 512
@@ -54,11 +55,11 @@ def evaluate(XFiles):
 def main():
     X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
 
-    X_trainGenuineFiles = X_trainfilenames[0:N_FILES]
-    Y_trainGenuine = Y_train[0:N_FILES]
+    X_trainGenuineFiles = X_trainfilenames[Y_train==0][0:N_FILES]
+    Y_trainGenuine = Y_train[Y_train==0][0:N_FILES]
 
-    X_trainSpoofFiles = X_trainfilenames[-N_FILES:]
-    Y_trainSpoof = Y_train[-N_FILES:]
+    X_trainSpoofFiles = X_trainfilenames[Y_train==1][0:N_FILES]
+    Y_trainSpoof = Y_train[Y_train==1][0:N_FILES]
 
     assert(Y_trainSpoof.all() and not Y_trainGenuine.any())
 
