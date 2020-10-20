@@ -38,10 +38,17 @@ def rms(filename):
     return librosa.feature.rms(y=y,
                                frame_length=N_FFT)[0]
 
+<<<<<<< HEAD
 def dct(filename):
     y = readAudioFile(filename)
     return scipy.fft.dct(y)
 
+=======
+def dct_func(data):
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.dct.html
+    return dct(data)
+    
+>>>>>>> fd15443ee1a686d6134958ac9786dd6e015b678a
 if __name__ == '__main__':
     # fname = 'data/LA/ASVspoof2019_LA_train/flac/LA_T_1000137.flac'
     # rms_feats = rms(fname)
