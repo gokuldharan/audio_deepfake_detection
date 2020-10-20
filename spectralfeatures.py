@@ -4,43 +4,59 @@ import librosa
 import scipy.fft
 import dataloader
 
-SR = 16000
+SR_DEFAULT = 16000
 N_FFT = 512
 
-def readAudioFile(filename):
-    data, samplerate = librosa.load(filename, sr=SR)
+
+def readAudioFile(filename, sr):
+    data, samplerate = librosa.load(filename, sr)
     return data
 
-def mfcc(filename):
-    y = readAudioFile(filename)
+def mfcc(filename, sr=SR_DEFAULT):
+    y = readAudioFile(filename, sr)
     return librosa.feature.mfcc(y=y,
                                 sr=SR)
 
-def melSpectrogram(filename):
+def melSpectrogram(filename, sr=SR_DEFAULT):
     y = readAudioFile(filename)
     return librosa.feature.melspectrogram(y=y,
                                           sr=SR,
                                           n_fft=N_FFT,
                                           hop_length=N_FFT//2,
-                                          center=False)
+                                          center=False).T
 
-def spectrogram(filename):
-    y = readAudioFile(filename)
+def spectrogram(filename, sr=SR_DEFAULT):
+    y = readAudioFile(filename, sr)
     return np.abs(librosa.stft(y=y,
                                n_fft=N_FFT,
                                win_length=N_FFT,
                                hop_length = N_FFT//2,
                                window='hamming',
-                               center=False))
+                               center=False)).T
 
-def rms(filename):
-    y = readAudioFile(filename)
+def rms(filename, sr=SR_DEFAULT):
+    y = readAudioFile(filename, sr)
     return librosa.feature.rms(y=y,
                                frame_length=N_FFT)[0]
 
-def dct(filename):
-    y = readAudioFile(filename)
+def dct(filename, sr=SR_DEFAULT):
+    y = readAudioFile(filename, sr)
     return scipy.fft.dct(y)
+
+
+featureExtractors = {"mfcc":mfcc,
+                     "melSpectrogram":melSpectrogram,
+                     "spectrogram":spectrogram,
+                     "rms":rms,
+                     "dct":dct}
+
+
+def batchTransform(filenames, featureExtractor, sr=None):
+    transforms = []
+    for file in filenames:
+        S = featureExtractors[featureExtractor](file, sr)
+        transforms.append(S)
+    return transforms
 
 if __name__ == '__main__':
     # fname = 'data/LA/ASVspoof2019_LA_train/flac/LA_T_1000137.flac'
