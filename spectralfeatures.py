@@ -15,12 +15,12 @@ def readAudioFile(filename, sr):
 def mfcc(filename, sr=SR_DEFAULT):
     y = readAudioFile(filename, sr)
     return librosa.feature.mfcc(y=y,
-                                sr=SR)
+                                sr=sr).T
 
 def melSpectrogram(filename, sr=SR_DEFAULT):
-    y = readAudioFile(filename)
+    y = readAudioFile(filename, sr)
     return librosa.feature.melspectrogram(y=y,
-                                          sr=SR,
+                                          sr=sr,
                                           n_fft=N_FFT,
                                           hop_length=N_FFT//2,
                                           center=False).T
@@ -55,6 +55,8 @@ def batchTransform(filenames, featureExtractor, sr=None):
     transforms = []
     for file in filenames:
         S = featureExtractors[featureExtractor](file, sr)
+        if S.ndim == 1:
+            S = np.expand_dims(S, axis=1)
         transforms.append(S)
     return transforms
 
