@@ -11,7 +11,7 @@ N_SAMPLES = 10000
 
 def readAudioFile(filename, sr=SR_DEFAULT):
     data, samplerate = librosa.load(filename, sr)
-    data = data[:clip_len]
+    data = data[:N_SAMPLES]
     return data
 
 def mfcc(filename, sr=SR_DEFAULT):
