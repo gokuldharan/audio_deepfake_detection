@@ -10,6 +10,7 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 import utils
+import spectralfeatures
 
 SF = 16000
 N_FFT = 512
@@ -32,10 +33,53 @@ def fourierTransform(filenames):
         fourierTransforms.append(S)
     return fourierTransforms
 
+
+def mfcc(filenames):
+    mfcc_list = []
+    #import pdb
+    #pdb.set_trace()
+    for file in filenames:
+        y, _ = librosa.load(file, sr=SF)
+        
+        # NOTE TO SELF
+        S = spectralfeatures.mfcc(file, sr=SF)
+        S = S[:10, :] # (100,), clipping the audio for logistic regression, clipping didnt help
+        S = S.flatten() #
+        mfcc_list.append(S)
+    return mfcc_list
+
+def mel(filenames):
+    mfcc_list = []
+    #import pdb
+    #pdb.set_trace()
+    for file in filenames:
+        y, _ = librosa.load(file, sr=SF)
+        
+        # NOTE TO SELF
+        S = spectralfeatures.melSpectrogram(file, sr=SF).T
+        #S = S[:10, :] # (100,), clipping the audio for logistic regression, clipping didnt help
+        #S = S.flatten() #
+        mfcc_list.append(S)
+    return mfcc_list
+
+def rms(filenames):
+    mfcc_list = []
+    #import pdb
+    #pdb.set_trace()
+    for file in filenames:
+        y, _ = librosa.load(file, sr=SF)
+        
+        # NOTE TO SELF
+        S = spectralfeatures.rms(file, sr=SF).T
+        S = S[:20] # (100,), clipping the audio for logistic regression, clipping didnt help
+        S = S.flatten() #
+        mfcc_list.append(S)
+    return mfcc_list
+    
 def logistic_regression(X_train, Y_train, X_dev, Y_dev):
     #import pdb
     #pdb.set_trace()
-    clf = LogisticRegression(random_state=0).fit(X_train, Y_train)
+    clf = LogisticRegression(random_state=0,max_iter=1000).fit(X_train, Y_train)
     #dump(clf, 'models/LR/LR' + str(N_FILES) +'.joblib',compress=3)
     pred_train = clf.predict(X_train)
     accuracy_train,f1_train,precision_train,recall_train = utils.accuracies(Y_train, pred_train)
@@ -43,6 +87,8 @@ def logistic_regression(X_train, Y_train, X_dev, Y_dev):
     print("train f1:", f1_train)
     print("train precision:", precision_train)
     
+    #import pdb
+    #pdb.set_trace()
     pred_dev = clf.predict(X_dev)
     accuracy_dev,f1_dev,precision_dev,recall_dev = utils.accuracies(Y_dev, pred_dev)
     print("dev accuracy:", accuracy_dev)
@@ -63,8 +109,8 @@ def main():
     feature = args.feature
     X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
     
-    X_trainfilenames = X_trainfilenames[0:N_FILES]
-    Y_train = Y_train[0:N_FILES]
+    #X_trainfilenames = X_trainfilenames[0:N_FILES]
+    #Y_train = Y_train[0:N_FILES]
     
     
     if(feature == "fft"):
@@ -73,7 +119,22 @@ def main():
        features_x_train = fourierTransform(X_trainfilenames)
        X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
        X_dev = np.stack(fourierTransform(X_devfilenames))
-    else if(feature == "dct"):
+    elif(feature == "dct"):
+       features_x_train = dct_func(X_trainfilenames)
+       X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+       X_dev = np.stack(fourierTransform(X_devfilenames))
+    elif(feature == "mfcc"):
+       features_x_train = mfcc(X_trainfilenames)
+       X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+       X_dev = np.stack(mfcc(X_devfilenames))
+    elif(feature == "mel"):
+       features_x_train = mel(X_trainfilenames)
+       X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+       X_dev = np.stack(mel(X_devfilenames))
+    elif(feature == "rms"):
+       features_x_train =rms(X_trainfilenames)
+       X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+       X_dev = np.stack(rms(X_devfilenames))
     
    
     logistic_regression(X_train, Y_train, X_dev, Y_dev)
