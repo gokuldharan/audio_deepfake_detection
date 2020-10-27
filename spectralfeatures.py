@@ -6,10 +6,12 @@ import dataloader
 
 SR_DEFAULT = 16000
 N_FFT = 512
+N_SAMPLES = 10000
 
 
-def readAudioFile(filename, sr):
+def readAudioFile(filename, sr=SR_DEFAULT):
     data, samplerate = librosa.load(filename, sr)
+    data = data[:N_SAMPLES]
     return data
 
 def mfcc(filename, sr=SR_DEFAULT):
@@ -62,6 +64,7 @@ def batchTransform(filenames, featureExtractor, sr=None):
 
 if __name__ == '__main__':
     # fname = 'data/LA/ASVspoof2019_LA_train/flac/LA_T_1000137.flac'
+    # readAudioFile(fname, SR_DEFAULT)
     # rms_feats = rms(fname)
     # print(rms_feats.shape)
     # times = librosa.times_like(rms_feats)
