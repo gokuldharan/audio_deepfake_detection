@@ -7,8 +7,8 @@ from spectralfeatures import batchTransform
 import os.path
 import utils
 
-SR = 8000
-N_FILES = 300
+SR = 16000
+N_FILES = 1000
 N_CMP = 512
 
 featureExtractor = "mfcc"
