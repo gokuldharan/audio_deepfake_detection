@@ -8,10 +8,10 @@ import os.path
 import utils
 
 SR = 16000
-N_FILES = 1000
+N_FILES = 100
 N_CMP = 512
 
-featureExtractor = "mfcc"
+featureExtractor = "cqcc"
 
 #MAKE SURE THIS PATH ("models/GMM/") EXISTS!!! It's hacky I know
 genuineGMMPath = 'models/GMM/genuineGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES) + '_NCMP' + str(N_CMP) + '.joblib'
