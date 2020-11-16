@@ -63,5 +63,29 @@ def train_model(featureExtractor):
 
     model.save('models/CNN/melSpectrogram_batch4_epochs10_lr1e-3_dropout')
 
+def evaluate_model(model_name):
+    batch_size = 4
+    featureExtractor = 'spectrogram'
+
+    model = tf.keras.models.load_model(model_name)
+    X_other_eval, y_other_eval = load_other_eval_data()
+    X_other_eval = np.stack(batchTransform(X_other_eval, featureExtractor))
+    X_other_eval = X_other_eval[:, :, :, np.newaxis] # add channels axis (1)
+
+    ds_other_eval = tf.data.Dataset.from_tensor_slices((X_other_eval, y_other_eval)).shuffle(len(X_other_eval)).batch(batch_size)
+    results = model.evaluate(ds_other_eval)
+
+    loss = results[0]
+    accuracy = results[1]
+    recall = results[2]
+    precision = results[3]
+    f1 = 2*(precision*recall)/(precision+recall)
+
+    print('Accuracy:', accuracy)
+    print('Recall:', recall)
+    print('Precision:', precision)
+    print('F1:', f1)
+
 if __name__ == '__main__':
-    train_model('melSpectrogram')
+    # train_model('melSpectrogram')
+    evaluate_model('models/CNN/spectrogram_batch4_epochs10_lr1e-3_dropout')

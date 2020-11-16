@@ -147,7 +147,7 @@ def load_other_eval_data():
 
     df_other_eval = pd.read_csv(os.path.join(data_basepath, 'other_eval_balanced.txt'))
     X_other_eval = df_other_eval['filename'].to_numpy()
-    X_other_eval = 'data/LA/ASVspoof2019_LA_dev/flac/' + X_other_eval + '.flac'
+    X_other_eval = 'data/LA/ASVspoof2019_LA_eval/flac/' + X_other_eval + '.flac'
     Y_other_eval = np.array(df_other_eval['spoof_type'] != '-').astype('int') # 0 if bonafide, 1 if spoof
 
     # Shuffling arrays
