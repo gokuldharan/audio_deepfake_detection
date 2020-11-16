@@ -6,19 +6,21 @@ from joblib import dump, load
 from spectralfeatures import batchTransform
 import os.path
 import utils
+import time
 
 SR = 16000
-N_FILES = 100
+#max 2580
+N_FILES = 2580
 N_CMP = 512
 
-featureExtractor = "cqcc"
+featureExtractor = "mfcc"
 
 #MAKE SURE THIS PATH ("models/GMM/") EXISTS!!! It's hacky I know
 genuineGMMPath = 'models/GMM/genuineGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES) + '_NCMP' + str(N_CMP) + '.joblib'
 spoofGMMPath = 'models/GMM/spoofGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES)  + '_NCMP' + str(N_CMP) + '.joblib'
+resultsPath = 'models/GMM/' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES)  + '_NCMP' + str(N_CMP) + '.txt'
 
-
-def train(GenuineFiles, SpoofFiles,featureExtractor):
+def train(GenuineFiles, SpoofFiles):
     if os.path.exists(genuineGMMPath) and os.path.exists(spoofGMMPath):
          print("Already trained with these params, skipping!")
          return
@@ -27,18 +29,19 @@ def train(GenuineFiles, SpoofFiles,featureExtractor):
     X_trainGenuine = np.vstack(batchTransform(GenuineFiles, featureExtractor, sr=SR))
     X_trainSpoof = np.vstack(batchTransform(SpoofFiles, featureExtractor, sr=SR))
 
+    #SWITCHING TO DIAGONAL COVARIANCES FOR RUNTIME
     print("Training Genuine GMM")
-    genuineGMM = sklearn.mixture.GaussianMixture(n_components=N_CMP, verbose=True, verbose_interval=1)
+    genuineGMM = sklearn.mixture.GaussianMixture(n_components=N_CMP, verbose=True, verbose_interval=1, covariance_type='diag')
     genuineGMM.fit(X_trainGenuine)
     dump(genuineGMM, genuineGMMPath,compress=3)
 
     print("Training Spoof GMM")
-    spoofGMM = sklearn.mixture.GaussianMixture(n_components=N_CMP, verbose=True, verbose_interval=1)
+    spoofGMM = sklearn.mixture.GaussianMixture(n_components=N_CMP, verbose=True, verbose_interval=1, covariance_type='diag')#, reg_covar=1e-5
     spoofGMM.fit(X_trainSpoof)
     dump(spoofGMM, spoofGMMPath,compress=3)
 
 
-def evaluate(XFiles, featureExtractor):
+def evaluate(XFiles):
     print("Loading Models")
     genuineGMM = load(genuineGMMPath)
     spoofGMM = load(spoofGMMPath)
@@ -56,6 +59,42 @@ def evaluate(XFiles, featureExtractor):
 
     return Y
 
+def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval):
+
+    if os.path.exists(resultsPath):
+        print("Already saved results with these params, skipping evaluation and loading from file!")
+    else:
+        file = open(resultsPath, "a+")
+
+        print("Evaluating on Training Set")
+        Y_trnpred = evaluate(X_train)
+        accuracy_trn,f1_trn,precision_trn,recall_trn = utils.accuracies(Y_train, Y_trnpred)
+        file.write("trn accuracy:" + str(accuracy_trn) + "\n")
+        file.write("trn f1:"+ str( f1_trn) + "\n")
+        file.write("trn precision:"+ str( precision_trn) + "\n")
+        file.write("trn recall:"+ str( recall_trn) + "\n")
+
+        print("Evaluating on Development Set")
+        Y_devpred = evaluate(X_dev)
+        accuracy_dev,f1_dev,precision_dev,recall_dev = utils.accuracies(Y_dev, Y_devpred)
+        file.write("dev accuracy:"+ str( accuracy_dev) + "\n")
+        file.write("dev f1:"+ str( f1_dev) + "\n")
+        file.write("dev precision:"+ str( precision_dev) + "\n")
+        file.write("dev recall:"+ str( recall_dev) + "\n")
+
+        print("Evaluating on Evaluation Set")
+        Y_evalpred = evaluate(X_eval)
+        accuracy_eval,f1_eval,precision_eval,recall_eval = utils.accuracies(Y_eval, Y_evalpred)
+        file.write("eval accuracy:"+ str( accuracy_eval) + "\n")
+        file.write("eval f1:"+ str( f1_eval) + "\n")
+        file.write("eval precision:"+ str( precision_eval) + "\n")
+        file.write("eval recall:"+ str( recall_eval) + "\n")
+        file.close()
+
+    file = open(resultsPath, "r")
+    for line in file.readlines():
+        print(line)
+
 
 def main():
     X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
@@ -69,24 +108,13 @@ def main():
 
     assert(Y_trainSpoof.all() and not Y_trainGenuine.any())
 
-    train(X_trainGenuineFiles, X_trainSpoofFiles,featureExtractor)
-
-    Y_trnpred = evaluate(np.concatenate((X_trainGenuineFiles, X_trainSpoofFiles)),featureExtractor)
-    accuracy_trn,f1_trn,precision_trn,recall_trn = utils.accuracies(np.concatenate((Y_trainGenuine, Y_trainSpoof)), Y_trnpred)
-    acc = np.mean(Y_trnpred == np.concatenate((Y_trainGenuine, Y_trainSpoof)))
-    print("Training Set Accuracy: " + str(acc))
-    print("trn accuracy:", accuracy_trn)
-    print("trn f1:", f1_trn)
-    print("trn precision:", precision_trn)
-    print("trn recall:", recall_trn)
-
-    Y_devpred = evaluate(X_devfilenames,featureExtractor)
-    accuracy_dev,f1_dev,precision_dev,recall_dev = utils.accuracies(Y_dev, Y_devpred)
-    print("dev accuracy:", accuracy_dev)
-    print("dev f1:", f1_dev)
-    print("dev precision:", precision_dev)
-    print("dev recall:", recall_dev)
-
+    train(X_trainGenuineFiles, X_trainSpoofFiles)
+    evaluateAndSaveResults(np.concatenate((X_trainGenuineFiles, X_trainSpoofFiles)),
+                            np.concatenate((Y_trainGenuine, Y_trainSpoof)),
+                            X_devfilenames,
+                            Y_dev,
+                            X_evalfilenames,
+                            Y_eval)
 
 
 if __name__ == "__main__":
