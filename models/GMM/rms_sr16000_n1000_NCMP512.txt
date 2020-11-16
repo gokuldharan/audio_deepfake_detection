@@ -1,0 +1,36 @@
+Starting Feature Extraction
+Training Genuine GMM
+Initialization 0
+  Iteration 1
+  Iteration 2
+  Iteration 3
+  Iteration 4
+  Iteration 5
+  Iteration 6
+  Iteration 7
+  Iteration 8
+Initialization converged: True
+Training Spoof GMM
+Initialization 0
+  Iteration 1
+  Iteration 2
+  Iteration 3
+  Iteration 4
+  Iteration 5
+  Iteration 6
+  Iteration 7
+  Iteration 8
+Initialization converged: True
+Loading Models
+Evaluating Predictions
+Training Set Accuracy: 0.716
+trn accuracy: 0.716
+trn f1: 0.7242718446601941
+trn precision: 0.7037735849056603
+trn recall: 0.746
+Loading Models
+Evaluating Predictions
+dev accuracy: 0.5872093023255814
+dev f1: 0.5626283367556468
+dev precision: 0.5982532751091703
+dev recall: 0.5310077519379846

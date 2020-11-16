@@ -1,0 +1,36 @@
+Training Genuine GMM
+Initialization 0
+  Iteration 1
+  Iteration 2
+  Iteration 3
+  Iteration 4
+  Iteration 5
+  Iteration 6
+  Iteration 7
+  Iteration 8
+Initialization converged: True
+Training Spoof GMM
+Initialization 0
+  Iteration 1
+  Iteration 2
+  Iteration 3
+  Iteration 4
+  Iteration 5
+  Iteration 6
+  Iteration 7
+  Iteration 8
+  Iteration 9
+Initialization converged: True
+Loading Models
+Evaluating Predictions
+Training Set Accuracy: 0.705
+trn accuracy: 0.705
+trn f1: 0.6943005181347149
+trn precision: 0.7204301075268817
+trn recall: 0.67
+Loading Models
+Evaluating Predictions
+dev accuracy: 0.6589147286821705
+dev f1: 0.5944700460829493
+dev precision: 0.7329545454545454
+dev recall: 0.5
