@@ -3,28 +3,16 @@ import matplotlib.pyplot as plt
 import librosa
 import scipy.fft
 import dataloader
-MATLAB_API = False
-if MATLAB_API:
-    import matlab.engine
 
 SR_DEFAULT = 16000
 N_FFT = 512
 N_SAMPLES = 10000
-engine = None
+
 
 def readAudioFile(filename, sr=SR_DEFAULT):
     data, samplerate = librosa.load(filename, sr)
     data = data[:N_SAMPLES]
     return data
-
-def cqcc(filename, sr=SR_DEFAULT):
-    global engine
-    if engine is None:
-        engine = matlab.engine.start_matlab()
-    y = readAudioFile(filename, sr)
-    x_mat = matlab.double(y.tolist())
-    fs_mat = matlab.double([sr])
-    return np.asarray(engine.extractCQCC(x_mat, fs_mat)).T
 
 def mfcc(filename, sr=SR_DEFAULT):
     y = readAudioFile(filename, sr)
@@ -62,11 +50,10 @@ featureExtractors = {"mfcc":mfcc,
                      "melSpectrogram":melSpectrogram,
                      "spectrogram":spectrogram,
                      "rms":rms,
-                     "dct":dct,
-                     "cqcc":cqcc}
+                     "dct":dct}
 
 
-def batchTransform(filenames, featureExtractor, sr=None):
+def batchTransform(filenames, featureExtractor, sr=SR_DEFAULT):
     transforms = []
     for file in filenames:
         S = featureExtractors[featureExtractor](file, sr)
