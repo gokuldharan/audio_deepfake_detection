@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import librosa
 import scipy.fft
 import dataloader
-MATLAB_API = False
+MATLAB_API = True
 if MATLAB_API:
     import matlab.engine
 

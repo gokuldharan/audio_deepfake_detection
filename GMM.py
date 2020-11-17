@@ -13,7 +13,7 @@ SR = 16000
 N_FILES = 2580
 N_CMP = 512
 
-featureExtractor = "mfcc"
+featureExtractor = "spectrogram"
 
 #MAKE SURE THIS PATH ("models/GMM/") EXISTS!!! It's hacky I know
 genuineGMMPath = 'models/GMM/genuineGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES) + '_NCMP' + str(N_CMP) + '.joblib'
@@ -59,20 +59,20 @@ def evaluate(XFiles):
 
     return Y
 
-def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval):
+def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval, X_eval2, Y_eval2):
 
     if os.path.exists(resultsPath):
         print("Already saved results with these params, skipping evaluation and loading from file!")
     else:
         file = open(resultsPath, "a+")
 
-        print("Evaluating on Training Set")
-        Y_trnpred = evaluate(X_train)
-        accuracy_trn,f1_trn,precision_trn,recall_trn = utils.accuracies(Y_train, Y_trnpred)
-        file.write("trn accuracy:" + str(accuracy_trn) + "\n")
-        file.write("trn f1:"+ str( f1_trn) + "\n")
-        file.write("trn precision:"+ str( precision_trn) + "\n")
-        file.write("trn recall:"+ str( recall_trn) + "\n")
+        # print("Evaluating on Training Set")
+        # Y_trnpred = evaluate(X_train)
+        # accuracy_trn,f1_trn,precision_trn,recall_trn = utils.accuracies(Y_train, Y_trnpred)
+        # file.write("trn accuracy:" + str(accuracy_trn) + "\n")
+        # file.write("trn f1:"+ str( f1_trn) + "\n")
+        # file.write("trn precision:"+ str( precision_trn) + "\n")
+        # file.write("trn recall:"+ str( recall_trn) + "\n")
 
         print("Evaluating on Development Set")
         Y_devpred = evaluate(X_dev)
@@ -89,6 +89,15 @@ def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval):
         file.write("eval f1:"+ str( f1_eval) + "\n")
         file.write("eval precision:"+ str( precision_eval) + "\n")
         file.write("eval recall:"+ str( recall_eval) + "\n")
+
+        print("Evaluating on Evaluation Set 2 - Unknown Protocols")
+        Y_eval2pred = evaluate(X_eval2)
+        accuracy_eval2,f1_eval2,precision_eval2,recall_eval2 = utils.accuracies(Y_eval2, Y_eval2pred)
+        file.write("eval2 accuracy:"+ str( accuracy_eval2) + "\n")
+        file.write("eval2 f1:"+ str( f1_eval2) + "\n")
+        file.write("eval2 precision:"+ str( precision_eval2) + "\n")
+        file.write("eval2 recall:"+ str( recall_eval2) + "\n")
+
         file.close()
 
     file = open(resultsPath, "r")
@@ -98,6 +107,7 @@ def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval):
 
 def main():
     X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
+    X_eval2filenames, Y_eval2 = dataloader.load_other_eval_data()
 
 
     X_trainGenuineFiles = X_trainfilenames[Y_train==0][0:N_FILES]
@@ -114,7 +124,9 @@ def main():
                             X_devfilenames,
                             Y_dev,
                             X_evalfilenames,
-                            Y_eval)
+                            Y_eval,
+                            X_eval2filenames,
+                            Y_eval2)
 
 
 if __name__ == "__main__":

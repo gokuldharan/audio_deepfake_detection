@@ -32,6 +32,20 @@ def fourierTransform(filenames):
         fourierTransforms.append(S)
     return np.array(fourierTransforms)
 
+def cqcc(filenames):
+    cqcc_list = []
+    #import pdb
+    #pdb.set_trace()
+    for file in filenames:
+        y, _ = librosa.load(file, sr=SF)
+        
+        # NOTE TO SELF
+        #S = spectralfeatures.mfcc(file, sr=SF)
+        #S = S[:10, :] # (100,), clipping the audio for logistic regression, clipping didnt help
+        S = spectralfeatures.cqcc(file, sr=SF)
+        S = S.flatten() #
+        cqcc_list.append(S)
+    return np.array(cqcc_list)
 
 def mfcc(filenames):
     mfcc_list = []
@@ -180,6 +194,13 @@ def main():
        X_dev = np.stack(rms(X_devfilenames))
        X_eval = np.stack(rms(X_evalfilenames))
        X_eval_other = np.stack(rms(X_evalfilenames_other))
+       print("X eval other finished")
+    elif(feature == "cqcc"):
+       features_x_train =cqcc(X_trainfilenames)
+       X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+       X_dev = np.stack(cqcc(X_devfilenames))
+       X_eval = np.stack(cqcc(X_evalfilenames))
+       X_eval_other = np.stack(cqcc(X_evalfilenames_other))
        print("X eval other finished")
     
    
