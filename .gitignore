@@ -1,4 +1,5 @@
 data/LA/*
+test_logdir/
 *.flac
 
 # Byte-compiled / optimized / DLL files
