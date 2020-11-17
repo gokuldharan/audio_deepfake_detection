@@ -7,6 +7,9 @@ from spectralfeatures import batchTransform
 import os.path
 import utils
 import time
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 
 SR = 16000
 #max 2580
@@ -19,6 +22,12 @@ featureExtractor = "spectrogram"
 genuineGMMPath = 'models/GMM/genuineGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES) + '_NCMP' + str(N_CMP) + '.joblib'
 spoofGMMPath = 'models/GMM/spoofGMM_' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES)  + '_NCMP' + str(N_CMP) + '.joblib'
 resultsPath = 'models/GMM/' + featureExtractor + '_sr' + str(SR) + '_n' + str(N_FILES)  + '_NCMP' + str(N_CMP) + '.txt'
+
+
+def genModelPaths(featureExt):
+    genuine = 'models/GMM/genuineGMM_' + featureExt + '_sr' + str(SR) + '_n' + str(N_FILES) + '_NCMP' + str(N_CMP) + '.joblib'
+    spoof = 'models/GMM/spoofGMM_' + featureExt + '_sr' + str(SR) + '_n' + str(N_FILES)  + '_NCMP' + str(N_CMP) + '.joblib'
+    return genuine, spoof
 
 def train(GenuineFiles, SpoofFiles):
     if os.path.exists(genuineGMMPath) and os.path.exists(spoofGMMPath):
@@ -104,6 +113,44 @@ def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval, X_eva
     for line in file.readlines():
         print(line)
 
+def plotROC(XFiles, Y):
+    print("Loading Models")
+
+    features = ['spectrogram', 'melSpectrogram', 'mfcc', 'cqcc','rms']
+    genuineGMMs, spoofGMMs = [], []
+    for f in features:
+        genuineGMM,spoofGMM = genModelPaths(f)
+        genuineGMMs.append(genuineGMM)
+        spoofGMMs.append(spoofGMM)
+
+
+    Y_preds = np.zeros((len(features),len(XFiles)))
+    fprs, tprs, scores = [], [], []
+    for idx in range(len(features)):
+        genuineGMM = load(genuineGMMs[idx])
+        spoofGMM = load(spoofGMMs[idx])
+        print("Evaluating Predictions")
+        for j in range(len(XFiles)):
+            #The first two arrays are just for debugging/analysis
+            genuineScore = genuineGMM.score(batchTransform([XFiles[j]], features[idx], sr=SR)[0])
+            spoofScore = spoofGMM.score(batchTransform([XFiles[j]], features[idx], sr=SR)[0])
+            Y_preds[idx][j] = spoofScore - genuineScore
+        fpr, tpr, _ = roc_curve(Y, Y_preds[idx])
+        fprs.append(fpr)
+        tprs.append(tpr)
+        scores.append(roc_auc_score(Y, Y_preds[idx]))
+
+    plt.figure(1)
+    plt.plot([0, 1], [0, 1], 'k--')
+    for i in range(len(features)):
+        plt.plot(fprs[i], tprs[i], label=features[i] + '(area = ' + str(round(scores[i],2)) + ')')
+
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC Curves for GMM')
+    plt.legend(loc='best')
+    plt.show()
+
 
 def main():
     X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
@@ -127,6 +174,7 @@ def main():
                             Y_eval,
                             X_eval2filenames,
                             Y_eval2)
+    plotROC(X_evalfilenames, Y_eval)
 
 
 if __name__ == "__main__":
