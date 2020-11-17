@@ -12,6 +12,8 @@ from sklearn.metrics import recall_score
 import utils
 import spectralfeatures
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 
 SF = 16000
 N_FFT = 512
@@ -90,7 +92,7 @@ def rms(filenames):
         S = S[:20] # (100,), clipping the audio for logistic regression, clipping didnt help
         S = S.flatten() #
         mfcc_list.append(S)
-    return bp.array(mfcc_list)
+    return np.array(mfcc_list)
     
 def logistic_regression(feature, X_train, Y_train, X_dev, Y_dev,X_eval,Y_eval,X_eval_other,Y_eval_other):
     #import pdb
@@ -127,9 +129,9 @@ def logistic_regression(feature, X_train, Y_train, X_dev, Y_dev,X_eval,Y_eval,X_
     print("eval_other recall:", recall_eval_other)
     
     
-def evaluate(modelPath):
+def evaluate(X_eval,Y_eval, modelPath):
     print("Loading Models")
-    model = load(modelPath)
+    clf = load(modelPath)
     
     pred_eval = clf.predict(X_eval)
     accuracy_eval,f1_eval,precision_eval,recall_eval = utils.accuracies(Y_eval, pred_eval)
@@ -137,30 +139,81 @@ def evaluate(modelPath):
     print("eval f1:", f1_eval)
     print("eval precision:", precision_eval)
     print("eval recall:", recall_eval)
+    return pred_eval
     
-    
-def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval, X_eval2, Y_eval2):
 
+def evaluateAndComputeROC():
+
+        fprs, tprs, scores = [], [], []
+        X_trainfilenames, Y_train, X_devfilenames, Y_dev, X_evalfilenames, Y_eval = dataloader.load_data()
+        X_evalfilenames_other, Y_eval_other = dataloader.load_other_eval_data()
+        
+        features_x_train = fourierTransform(X_trainfilenames)
+        X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+        X_eval = np.stack(fourierTransform(X_evalfilenames))
+        print("X_eval finished")
         spectogramPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5000fft.joblib"
         file = open(spectogramPath, "a+")
         print("Evaluating LR spectogram on Development Set")
-        Y_eval_pred = evaluate(X_eval,spectogramPath)
+        Y_eval_pred_spect = evaluate(X_eval,Y_eval,spectogramPath)
+        fpr, tpr, _ = roc_curve(Y_eval, Y_eval_pred_spect)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        scores.append(roc_auc_score(Y_eval, Y_eval_pred_spect))
 
-        mel-spectogramPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160mel.joblib"
-        file = open(mel-spectogramPath, "a+")
+
+        features_x_train = mel(X_trainfilenames)
+        X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+        X_eval = np.stack(mel(X_evalfilenames))
+        print("X_eval finished")
+        melspectogramPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160mel.joblib"
+        file = open(melspectogramPath, "a+")
         print("Evaluating LR mel-spectogram on Development Set")
-        Y_eval_pred = evaluate(X_eval,mel-spectogramPath)
+        Y_eval_pred_mel = evaluate(X_eval,Y_eval, melspectogramPath)
+        fpr, tpr, _ = roc_curve(Y_eval, Y_eval_pred_mel)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        scores.append(roc_auc_score(Y_eval, Y_eval_pred_mel))
         
+        features_x_train = mfcc(X_trainfilenames)
+        print("mfcc features shape",features_x_train.shape)
+        X_train = np.stack(features_x_train)
+        X_eval = np.stack(mfcc(X_evalfilenames))
         mfccPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160mfcc.joblib"
         file = open(mfccPath, "a+")
         print("Evaluating LR mfcc on Development Set")
-        Y_eval_pred = evaluate(X_eval,mfccPath)
+        Y_eval_pred_mfcc = evaluate(X_eval,Y_eval, mfccPath)
+        fpr, tpr, _ = roc_curve(Y_eval, Y_eval_pred_mfcc)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        scores.append(roc_auc_score(Y_eval, Y_eval_pred_mfcc))
 
+        features_x_train =rms(X_trainfilenames)
+        X_train = np.stack(features_x_train) 
+        X_eval = np.stack(rms(X_evalfilenames))
         rmsPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160rms.joblib"
         file = open(rmsPath, "a+")
         print("Evaluating LR RMS on Development Set")
-        Y_eval_pred = evaluate(X_eval,rmsPath)
+        Y_eval_pred_rms = evaluate(X_eval,Y_eval, rmsPath)
+        fpr, tpr, _ = roc_curve(Y_eval, Y_eval_pred_rms)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        scores.append(roc_auc_score(Y_eval, Y_eval_pred_rms))
+        
+        plt.figure(1)
+        plt.plot([0, 1], [0, 1], 'k--')
+        features = ['spectrogram', 'melSpectrogram', 'mfcc', 'rms']
+        for i in range(len(features)):
+            plt.plot(fprs[i], tprs[i], label=features[i] + '(area = ' + str(round(scores[i],2)) + ')')
 
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title('ROC Curves for Logistic Regression')
+        plt.legend(loc='best')
+        plt.show()
+
+        
+        
 def main():
     parser = argparse.ArgumentParser()
         ## Required parameters
@@ -243,5 +296,6 @@ def main():
     
 if __name__ == "__main__":
     print("Inside Main")
-    main()
+    #main()
+    evaluateAndComputeROC()
     
