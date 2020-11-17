@@ -11,6 +11,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 import utils
 import spectralfeatures
+from sklearn.metrics import roc_auc_score
 
 SF = 16000
 N_FFT = 512
@@ -126,6 +127,40 @@ def logistic_regression(feature, X_train, Y_train, X_dev, Y_dev,X_eval,Y_eval,X_
     print("eval_other recall:", recall_eval_other)
     
     
+def evaluate(modelPath):
+    print("Loading Models")
+    model = load(modelPath)
+    
+    pred_eval = clf.predict(X_eval)
+    accuracy_eval,f1_eval,precision_eval,recall_eval = utils.accuracies(Y_eval, pred_eval)
+    print("eval accuracy:", accuracy_eval)
+    print("eval f1:", f1_eval)
+    print("eval precision:", precision_eval)
+    print("eval recall:", recall_eval)
+    
+    
+def evaluateAndSaveResults(X_train, Y_train, X_dev, Y_dev, X_eval, Y_eval, X_eval2, Y_eval2):
+
+        spectogramPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5000fft.joblib"
+        file = open(spectogramPath, "a+")
+        print("Evaluating LR spectogram on Development Set")
+        Y_eval_pred = evaluate(X_eval,spectogramPath)
+
+        mel-spectogramPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160mel.joblib"
+        file = open(mel-spectogramPath, "a+")
+        print("Evaluating LR mel-spectogram on Development Set")
+        Y_eval_pred = evaluate(X_eval,mel-spectogramPath)
+        
+        mfccPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160mfcc.joblib"
+        file = open(mfccPath, "a+")
+        print("Evaluating LR mfcc on Development Set")
+        Y_eval_pred = evaluate(X_eval,mfccPath)
+
+        rmsPath = "C:/Users/19498/OneDrive/Documents/CS229/audio_deepfake_detection/models/LR/LR5160rms.joblib"
+        file = open(rmsPath, "a+")
+        print("Evaluating LR RMS on Development Set")
+        Y_eval_pred = evaluate(X_eval,rmsPath)
+
 def main():
     parser = argparse.ArgumentParser()
         ## Required parameters
