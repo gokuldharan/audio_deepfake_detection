@@ -133,12 +133,12 @@ def evaluate(X_eval,Y_eval, modelPath):
     print("Loading Models")
     clf = load(modelPath)
     
-    pred_eval = clf.predict(X_eval)
-    accuracy_eval,f1_eval,precision_eval,recall_eval = utils.accuracies(Y_eval, pred_eval)
-    print("eval accuracy:", accuracy_eval)
-    print("eval f1:", f1_eval)
-    print("eval precision:", precision_eval)
-    print("eval recall:", recall_eval)
+    pred_eval = clf.decision_function(X_eval)
+    #accuracy_eval,f1_eval,precision_eval,recall_eval = utils.accuracies(Y_eval, pred_eval)
+    #print("eval accuracy:", accuracy_eval)
+    #print("eval f1:", f1_eval)
+    #print("eval precision:", precision_eval)
+    #print("eval recall:", recall_eval)
     return pred_eval
     
 
@@ -175,6 +175,21 @@ def evaluateAndComputeROC():
         tprs.append(tpr)
         scores.append(roc_auc_score(Y_eval, Y_eval_pred_mel))
         
+        # CQCC UNCOMMENT BELOW ADD IN YOUR PATH TO THE CQCC MODEL FILE
+        
+        #features_x_train = cqcc(X_trainfilenames)
+        #X_train = np.stack(features_x_train) # (30, 10, 257) -> (30,), Gokul why do you use vstack - converting it to array instead
+        #X_eval = np.stack(cqcc(X_evalfilenames))
+        #print("X_eval finished")
+        #cqccPath = "ADD IN YOUR PATH"
+        #file = open(cqccPath, "a+")
+        #print("Evaluating LR cqcc on Development Set")
+        #Y_eval_pred_mel = evaluate(X_eval,Y_eval, cqccPath)
+        #fpr, tpr, _ = roc_curve(Y_eval, Y_eval_pred_cqcc)
+        #fprs.append(fpr)
+        #tprs.append(tpr)
+        #scores.append(roc_auc_score(Y_eval, Y_eval_pred_cqcc))
+        
         features_x_train = mfcc(X_trainfilenames)
         print("mfcc features shape",features_x_train.shape)
         X_train = np.stack(features_x_train)
@@ -202,7 +217,8 @@ def evaluateAndComputeROC():
         
         plt.figure(1)
         plt.plot([0, 1], [0, 1], 'k--')
-        features = ['spectrogram', 'melSpectrogram', 'mfcc', 'rms']
+        features = ['spectrogram', 'melSpectrogram', 'mfcc', 'rms'] # comment this out and uncomment 219
+        #features = ['spectrogram', 'melSpectrogram', 'mfcc', 'cqcc','rms']
         for i in range(len(features)):
             plt.plot(fprs[i], tprs[i], label=features[i] + '(area = ' + str(round(scores[i],2)) + ')')
 
