@@ -102,6 +102,7 @@ def evaluate_model(model_name):
     # np.save('eval_labels', y_eval)
     # X_eval = np.load('eval_cqcc.npy')
     # y_eval = np.load('eval_labels.npy')
+    X_eval = normalize(X_eval)
     X_eval = X_eval[:, :, :, np.newaxis] # add channels axis (1)
 
     X_other_eval, y_other_eval = load_other_eval_data()
@@ -110,6 +111,7 @@ def evaluate_model(model_name):
     # np.save('other_eval_labels', y_other_eval)
     # X_other_eval = np.load('other_eval_cqcc.npy')
     # y_other_eval = np.load('other_eval_labels.npy')
+    X_other_eval = normalize(X_other_eval)
     X_other_eval = X_other_eval[:, :, :, np.newaxis] # add channels axis (1)
 
     ds_eval = tf.data.Dataset.from_tensor_slices((X_eval, y_eval)).shuffle(len(X_eval)).batch(batch_size)
@@ -207,7 +209,7 @@ def plot_spectrograms():
 
 
 if __name__ == '__main__':
-    train_model('cqcc')
+    # train_model('cqcc')
     evaluate_model('models/CNN/cqcc_batch1_epochs10_lr1e-3_dropout')
-    plot_roc()
+    # plot_roc()
     # plot_spectrograms()
