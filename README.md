@@ -1,5 +1,7 @@
 # Audio Deepfake Detection
 
+See the written report at [CS229_Final_Report.pdf](CS229_Final_Report.pdf)
+
 Virtual environment setup:
 
 Run `conda create -n cs229-project python=3.7`
